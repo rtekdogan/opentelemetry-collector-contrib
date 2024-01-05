@@ -52,20 +52,11 @@ func createIsMatchFunction[K any](_ ottl.FunctionContext, oArgs ottl.Arguments) 
 	return isMatch(args.Target, args.Pattern)
 }
 
-<<<<<<< HEAD
 func isMatch[K any](target ottl.StringLikeGetter[K], pattern ottl.StringLikeGetter[K]) (ottl.ExprFunc[K], error) {
 
 	return func(ctx context.Context, tCtx K) (interface{}, error) {
 		val, err := pattern.Get(ctx, tCtx)
-=======
-func isMatch[K any](target ottl.StringLikeGetter[K], pattern string) (ottl.ExprFunc[K], error) {
-	compiledPattern, err := regexp.Compile(pattern)
-	if err != nil {
-		return nil, fmt.Errorf("the pattern supplied to IsMatch is not a valid regexp pattern: %w", err)
-	}
-	return func(ctx context.Context, tCtx K) (any, error) {
-		val, err := target.Get(ctx, tCtx)
->>>>>>> upstream/main
+
 		if err != nil {
 			return nil, err
 		}
