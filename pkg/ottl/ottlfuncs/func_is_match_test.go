@@ -17,19 +17,19 @@ import (
 func Test_isMatch(t *testing.T) {
 	tests := []struct {
 		name     string
-		target   ottl.StringLikeGetter[interface{}]
-		pattern  ottl.StringLikeGetter[interface{}]
+		target   ottl.StringLikeGetter[any]
+		pattern  ottl.StringLikeGetter[any]
 		expected bool
 	}{
 		{
 			name: "replace match true",
-			target: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			target: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "hello world", nil
 				},
 			},
-			pattern: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			pattern: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "hello.*", nil
 				},
 			},
@@ -37,13 +37,13 @@ func Test_isMatch(t *testing.T) {
 		},
 		{
 			name: "replace match false",
-			target: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			target: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "goodbye world", nil
 				},
 			},
-			pattern: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			pattern: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "hello.*", nil
 				},
 			},
@@ -51,13 +51,13 @@ func Test_isMatch(t *testing.T) {
 		},
 		{
 			name: "replace match complex",
-			target: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			target: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "-12.001", nil
 				},
 			},
-			pattern: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			pattern: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "[-+]?\\d*\\.\\d+([eE][-+]?\\d+)?", nil
 				},
 			},
@@ -65,13 +65,13 @@ func Test_isMatch(t *testing.T) {
 		},
 		{
 			name: "target bool",
-			target: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			target: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return true, nil
 				},
 			},
-			pattern: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			pattern: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "true", nil
 				},
 			},
@@ -79,13 +79,13 @@ func Test_isMatch(t *testing.T) {
 		},
 		{
 			name: "target int",
-			target: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			target: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return int64(1), nil
 				},
 			},
-			pattern: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			pattern: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "\\d", nil
 				},
 			},
@@ -93,13 +93,13 @@ func Test_isMatch(t *testing.T) {
 		},
 		{
 			name: "target float",
-			target: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			target: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return 1.1, nil
 				},
 			},
-			pattern: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			pattern: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "\\d.\\d", nil
 				},
 			},
@@ -107,15 +107,15 @@ func Test_isMatch(t *testing.T) {
 		},
 		{
 			name: "target pcommon.Value",
-			target: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			target: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					v := pcommon.NewValueEmpty()
 					v.SetStr("test")
 					return v, nil
 				},
 			},
-			pattern: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			pattern: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "test", nil
 				},
 			},
@@ -123,13 +123,13 @@ func Test_isMatch(t *testing.T) {
 		},
 		{
 			name: "nil target",
-			target: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			target: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return nil, nil
 				},
 			},
-			pattern: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			pattern: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "impossible to match", nil
 				},
 			},
@@ -137,13 +137,13 @@ func Test_isMatch(t *testing.T) {
 		},
 		{
 			name: "nil pattern",
-			target: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			target: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "hello world", nil
 				},
 			},
-			pattern: &ottl.StandardStringLikeGetter[interface{}]{
-				Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+			pattern: &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return nil, nil
 				},
 			},
@@ -162,32 +162,32 @@ func Test_isMatch(t *testing.T) {
 }
 
 func Test_isMatch_validation(t *testing.T) {
-	target := &ottl.StandardStringLikeGetter[interface{}]{
-		Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+	target := &ottl.StandardStringLikeGetter[any]{
+		Getter: func(ctx context.Context, tCtx any) (any, error) {
 			return "anything", nil
 		},
 	}
-	pattern := &ottl.StandardStringLikeGetter[interface{}]{
-		Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+	pattern := &ottl.StandardStringLikeGetter[any]{
+		Getter: func(ctx context.Context, tCtx any) (any, error) {
 			return "\\K", nil
 		},
 	}
-	_, err := isMatch[interface{}](target, pattern)
+	_, err := isMatch[any](target, pattern)
 	require.Error(t, err)
 }
 
 func Test_isMatch_error(t *testing.T) {
-	target := &ottl.StandardStringLikeGetter[interface{}]{
-		Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+	target := &ottl.StandardStringLikeGetter[any]{
+		Getter: func(ctx context.Context, tCtx any) (any, error) {
 			return make(chan int), nil
 		},
 	}
-	pattern := &ottl.StandardStringLikeGetter[interface{}]{
-		Getter: func(ctx context.Context, tCtx interface{}) (interface{}, error) {
+	pattern := &ottl.StandardStringLikeGetter[any]{
+		Getter: func(ctx context.Context, tCtx any) (any, error) {
 			return "test", nil
 		},
 	}
-	exprFunc, err := isMatch[interface{}](target, pattern)
+	exprFunc, err := isMatch[any](target, pattern)
 	assert.NoError(t, err)
 	_, err = exprFunc(context.Background(), nil)
 	require.Error(t, err)

@@ -23,7 +23,7 @@ func ReadMetrics(filePath string) (pmetric.Metrics, error) {
 		return pmetric.Metrics{}, err
 	}
 	if strings.HasSuffix(filePath, ".yaml") || strings.HasSuffix(filePath, ".yml") {
-		var m map[string]interface{}
+		var m map[string]any
 		if err = yaml.Unmarshal(b, &m); err != nil {
 			return pmetric.Metrics{}, err
 		}
@@ -37,7 +37,7 @@ func ReadMetrics(filePath string) (pmetric.Metrics, error) {
 }
 
 // WriteMetrics writes a pmetric.Metrics to the specified file in YAML format.
-func WriteMetrics(t *testing.T, filePath string, metrics pmetric.Metrics) error {
+func WriteMetrics(t testing.TB, filePath string, metrics pmetric.Metrics) error {
 	if err := writeMetrics(filePath, metrics); err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func MarshalMetricsYAML(metrics pmetric.Metrics) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var jsonVal map[string]interface{}
+	var jsonVal map[string]any
 	if err = json.Unmarshal(fileBytes, &jsonVal); err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func ReadLogs(filePath string) (plog.Logs, error) {
 		return plog.Logs{}, err
 	}
 	if strings.HasSuffix(filePath, ".yaml") || strings.HasSuffix(filePath, ".yml") {
-		var m map[string]interface{}
+		var m map[string]any
 		if err = yaml.Unmarshal(b, &m); err != nil {
 			return plog.Logs{}, err
 		}
@@ -99,7 +99,7 @@ func ReadLogs(filePath string) (plog.Logs, error) {
 }
 
 // WriteLogs writes a plog.Logs to the specified file in YAML format.
-func WriteLogs(t *testing.T, filePath string, logs plog.Logs) error {
+func WriteLogs(t testing.TB, filePath string, logs plog.Logs) error {
 	if err := writeLogs(filePath, logs); err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func writeLogs(filePath string, logs plog.Logs) error {
 	if err != nil {
 		return err
 	}
-	var jsonVal map[string]interface{}
+	var jsonVal map[string]any
 	if err = json.Unmarshal(fileBytes, &jsonVal); err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func ReadTraces(filePath string) (ptrace.Traces, error) {
 		return ptrace.Traces{}, err
 	}
 	if strings.HasSuffix(filePath, ".yaml") || strings.HasSuffix(filePath, ".yml") {
-		var m map[string]interface{}
+		var m map[string]any
 		if err = yaml.Unmarshal(b, &m); err != nil {
 			return ptrace.Traces{}, err
 		}
@@ -150,7 +150,7 @@ func ReadTraces(filePath string) (ptrace.Traces, error) {
 }
 
 // WriteTraces writes a ptrace.Traces to the specified file in YAML format.
-func WriteTraces(t *testing.T, filePath string, traces ptrace.Traces) error {
+func WriteTraces(t testing.TB, filePath string, traces ptrace.Traces) error {
 	if err := writeTraces(filePath, traces); err != nil {
 		return err
 	}
@@ -167,7 +167,7 @@ func writeTraces(filePath string, traces ptrace.Traces) error {
 	if err != nil {
 		return err
 	}
-	var jsonVal map[string]interface{}
+	var jsonVal map[string]any
 	if err = json.Unmarshal(fileBytes, &jsonVal); err != nil {
 		return err
 	}
