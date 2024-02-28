@@ -129,10 +129,10 @@ func (pep *pathExpressionParser) parsePath(path ottl.Path[TransformContext]) (ot
 	}
 	switch path.Name() {
 	case "cache":
-		if path.Key() == nil {
+		if path.Keys() == nil {
 			return accessCache(), nil
 		}
-		return accessCacheKey(path.Key()), nil
+		return accessCacheKey(path.Keys()), nil
 	case "resource":
 		return internal.ResourcePathGetSetter[TransformContext](path.Next())
 	case "instrumentation_scope":
@@ -146,15 +146,16 @@ func (pep *pathExpressionParser) parsePath(path ottl.Path[TransformContext]) (ot
 	case "name":
 		return accessSpanEventName(), nil
 	case "attributes":
-		if path.Key() == nil {
+		if path.Keys() == nil {
 			return accessSpanEventAttributes(), nil
 		}
-		return accessSpanEventAttributesKey(path.Key()), nil
+		return accessSpanEventAttributesKey(path.Keys()), nil
 	case "dropped_attributes_count":
 		return accessSpanEventDroppedAttributeCount(), nil
+	default:
+		return nil, internal.FormatDefaultErrorMessage(path.Name(), path.String(), "Span Event", internal.SpanEventRef)
 	}
 
-	return nil, fmt.Errorf("invalid scope path expression %v", path)
 }
 func accessCache() ottl.StandardGetSetter[TransformContext] {
 	return ottl.StandardGetSetter[TransformContext]{
@@ -170,7 +171,7 @@ func accessCache() ottl.StandardGetSetter[TransformContext] {
 	}
 }
 
-func accessCacheKey(key ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
+func accessCacheKey(key []ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
 	return ottl.StandardGetSetter[TransformContext]{
 		Getter: func(ctx context.Context, tCtx TransformContext) (any, error) {
 			return internal.GetMapValue[TransformContext](ctx, tCtx, tCtx.getCache(), key)
@@ -237,7 +238,7 @@ func accessSpanEventAttributes() ottl.StandardGetSetter[TransformContext] {
 	}
 }
 
-func accessSpanEventAttributesKey(key ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
+func accessSpanEventAttributesKey(key []ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
 	return ottl.StandardGetSetter[TransformContext]{
 		Getter: func(ctx context.Context, tCtx TransformContext) (any, error) {
 			return internal.GetMapValue[TransformContext](ctx, tCtx, tCtx.GetSpanEvent().Attributes(), key)

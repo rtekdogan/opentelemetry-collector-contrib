@@ -16,6 +16,10 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl/contexts/internal"
 )
 
+const (
+	contextName = "DataPoint"
+)
+
 var _ internal.ResourceContext = TransformContext{}
 var _ internal.InstrumentationScopeContext = TransformContext{}
 
@@ -145,10 +149,10 @@ func (pep *pathExpressionParser) parsePath(path ottl.Path[TransformContext]) (ot
 	}
 	switch path.Name() {
 	case "cache":
-		if path.Key() == nil {
+		if path.Keys() == nil {
 			return accessCache(), nil
 		}
-		return accessCacheKey(path.Key()), nil
+		return accessCacheKey(path.Keys()), nil
 	case "resource":
 		return internal.ResourcePathGetSetter[TransformContext](path.Next())
 	case "instrumentation_scope":
@@ -156,10 +160,10 @@ func (pep *pathExpressionParser) parsePath(path ottl.Path[TransformContext]) (ot
 	case "metric":
 		return internal.MetricPathGetSetter[TransformContext](path.Next())
 	case "attributes":
-		if path.Key() == nil {
+		if path.Keys() == nil {
 			return accessAttributes(), nil
 		}
-		return accessAttributesKey(path.Key()), nil
+		return accessAttributesKey(path.Keys()), nil
 	case "start_time_unix_nano":
 		return accessStartTimeUnixNano(), nil
 	case "time_unix_nano":
@@ -197,11 +201,10 @@ func (pep *pathExpressionParser) parsePath(path ottl.Path[TransformContext]) (ot
 			case "bucket_counts":
 				return accessPositiveBucketCounts(), nil
 			default:
-				return nil, fmt.Errorf("invalid span path expression %v", nextPath.Name())
+				return nil, internal.FormatDefaultErrorMessage(nextPath.Name(), path.String(), contextName, internal.DataPointRef)
 			}
-		} else {
-			return accessPositive(), nil
 		}
+		return accessPositive(), nil
 	case "negative":
 		nextPath := path.Next()
 		if nextPath != nil {
@@ -211,15 +214,15 @@ func (pep *pathExpressionParser) parsePath(path ottl.Path[TransformContext]) (ot
 			case "bucket_counts":
 				return accessNegativeBucketCounts(), nil
 			default:
-				return nil, fmt.Errorf("invalid span path expression %v", nextPath.Name())
+				return nil, internal.FormatDefaultErrorMessage(nextPath.Name(), path.String(), contextName, internal.DataPointRef)
 			}
-		} else {
-			return accessNegative(), nil
 		}
+		return accessNegative(), nil
 	case "quantile_values":
 		return accessQuantileValues(), nil
+	default:
+		return nil, internal.FormatDefaultErrorMessage(path.Name(), path.String(), contextName, internal.DataPointRef)
 	}
-	return nil, fmt.Errorf("invalid path expression %v", path)
 }
 
 func accessCache() ottl.StandardGetSetter[TransformContext] {
@@ -236,7 +239,7 @@ func accessCache() ottl.StandardGetSetter[TransformContext] {
 	}
 }
 
-func accessCacheKey(key ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
+func accessCacheKey(key []ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
 	return ottl.StandardGetSetter[TransformContext]{
 		Getter: func(ctx context.Context, tCtx TransformContext) (any, error) {
 			return internal.GetMapValue[TransformContext](ctx, tCtx, tCtx.getCache(), key)
@@ -286,7 +289,7 @@ func accessAttributes() ottl.StandardGetSetter[TransformContext] {
 	}
 }
 
-func accessAttributesKey(key ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
+func accessAttributesKey(key []ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
 	return ottl.StandardGetSetter[TransformContext]{
 		Getter: func(ctx context.Context, tCtx TransformContext) (any, error) {
 			switch tCtx.GetDataPoint().(type) {

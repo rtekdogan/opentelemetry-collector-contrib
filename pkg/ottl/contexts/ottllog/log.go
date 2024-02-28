@@ -18,6 +18,10 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl/internal/ottlcommon"
 )
 
+const (
+	contextName = "Log"
+)
+
 var _ internal.ResourceContext = TransformContext{}
 var _ internal.InstrumentationScopeContext = TransformContext{}
 
@@ -152,10 +156,10 @@ func (pep *pathExpressionParser) parsePath(path ottl.Path[TransformContext]) (ot
 	}
 	switch path.Name() {
 	case "cache":
-		if path.Key() == nil {
+		if path.Keys() == nil {
 			return accessCache(), nil
 		}
-		return accessCacheKey(path.Key()), nil
+		return accessCacheKey(path.Keys()), nil
 	case "resource":
 		return internal.ResourcePathGetSetter[TransformContext](path.Next())
 	case "instrumentation_scope":
@@ -173,43 +177,47 @@ func (pep *pathExpressionParser) parsePath(path ottl.Path[TransformContext]) (ot
 	case "severity_text":
 		return accessSeverityText(), nil
 	case "body":
-		if path.Next() != nil {
-			if path.Next().Name() == "string" {
+		nextPath := path.Next()
+		if nextPath != nil {
+			if nextPath.Name() == "string" {
 				return accessStringBody(), nil
 			}
-		} else {
-			if path.Key() == nil {
-				return accessBody(), nil
-			}
-			return accessBodyKey(path.Key()), nil
+			return nil, internal.FormatDefaultErrorMessage(nextPath.Name(), nextPath.String(), contextName, internal.LogRef)
 		}
+		if path.Keys() == nil {
+			return accessBody(), nil
+		}
+		return accessBodyKey(path.Keys()), nil
 	case "attributes":
-		if path.Key() == nil {
+		if path.Keys() == nil {
 			return accessAttributes(), nil
 		}
-		return accessAttributesKey(path.Key()), nil
+		return accessAttributesKey(path.Keys()), nil
 	case "dropped_attributes_count":
 		return accessDroppedAttributesCount(), nil
 	case "flags":
 		return accessFlags(), nil
 	case "trace_id":
-		if path.Next() != nil {
-			if path.Next().Name() == "string" {
+		nextPath := path.Next()
+		if nextPath != nil {
+			if nextPath.Name() == "string" {
 				return accessStringTraceID(), nil
 			}
-		} else {
-			return accessTraceID(), nil
+			return nil, internal.FormatDefaultErrorMessage(nextPath.Name(), nextPath.String(), contextName, internal.LogRef)
 		}
+		return accessTraceID(), nil
 	case "span_id":
-		if path.Next() != nil {
-			if path.Next().Name() == "string" {
+		nextPath := path.Next()
+		if nextPath != nil {
+			if nextPath.Name() == "string" {
 				return accessStringSpanID(), nil
 			}
-		} else {
-			return accessSpanID(), nil
+			return nil, internal.FormatDefaultErrorMessage(nextPath.Name(), path.String(), contextName, internal.LogRef)
 		}
+		return accessSpanID(), nil
+	default:
+		return nil, internal.FormatDefaultErrorMessage(path.Name(), path.String(), contextName, internal.LogRef)
 	}
-	return nil, fmt.Errorf("invalid path expression %v", path)
 }
 
 func accessCache() ottl.StandardGetSetter[TransformContext] {
@@ -226,7 +234,7 @@ func accessCache() ottl.StandardGetSetter[TransformContext] {
 	}
 }
 
-func accessCacheKey(key ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
+func accessCacheKey(key []ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
 	return ottl.StandardGetSetter[TransformContext]{
 		Getter: func(ctx context.Context, tCtx TransformContext) (any, error) {
 			return internal.GetMapValue[TransformContext](ctx, tCtx, tCtx.getCache(), key)
@@ -332,7 +340,7 @@ func accessBody() ottl.StandardGetSetter[TransformContext] {
 	}
 }
 
-func accessBodyKey(key ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
+func accessBodyKey(key []ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
 	return ottl.StandardGetSetter[TransformContext]{
 		Getter: func(ctx context.Context, tCtx TransformContext) (any, error) {
 			body := tCtx.GetLogRecord().Body()
@@ -387,7 +395,7 @@ func accessAttributes() ottl.StandardGetSetter[TransformContext] {
 	}
 }
 
-func accessAttributesKey(key ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
+func accessAttributesKey(key []ottl.Key[TransformContext]) ottl.StandardGetSetter[TransformContext] {
 	return ottl.StandardGetSetter[TransformContext]{
 		Getter: func(ctx context.Context, tCtx TransformContext) (any, error) {
 			return internal.GetMapValue[TransformContext](ctx, tCtx, tCtx.GetLogRecord().Attributes(), key)

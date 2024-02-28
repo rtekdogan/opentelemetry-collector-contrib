@@ -27,7 +27,7 @@ type Config struct {
 	Password                                configopaque.String `mapstructure:"password,omitempty"`
 	Database                                string              `mapstructure:"database,omitempty"`
 	AllowNativePasswords                    bool                `mapstructure:"allow_native_passwords,omitempty"`
-	confignet.NetAddr                       `mapstructure:",squash"`
+	confignet.AddrConfig                    `mapstructure:",squash"`
 	TLS                                     configtls.TLSClientSetting    `mapstructure:"tls,omitempty"`
 	MetricsBuilderConfig                    metadata.MetricsBuilderConfig `mapstructure:",squash"`
 	StatementEvents                         StatementEventsConfig         `mapstructure:"statement_events"`
@@ -52,5 +52,5 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 		cfg.TLS.Insecure = true
 	}
 
-	return componentParser.Unmarshal(cfg, confmap.WithErrorUnused())
+	return componentParser.Unmarshal(cfg)
 }
