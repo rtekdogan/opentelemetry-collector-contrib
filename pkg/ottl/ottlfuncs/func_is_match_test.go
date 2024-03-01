@@ -6,7 +6,6 @@ package ottlfuncs
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -198,7 +197,7 @@ func Test_isMatch_error(t *testing.T) {
 	require.Error(t, err)
 }
 
-func Test_performance_same_pattern(t *testing.T) {
+func Benchmark_performance_same_pattern(b *testing.B) {
 	target := &ottl.StandardStringLikeGetter[any]{
 		Getter: func(ctx context.Context, tCtx any) (any, error) {
 			return "abcde", nil
@@ -209,39 +208,32 @@ func Test_performance_same_pattern(t *testing.T) {
 			return "a.*", nil
 		},
 	}
-	for i := 0; i < 10000; i++ {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			exprFunx, err := isMatch[any](target, pattern)
-			assert.NoError(t, err)
-			match, err := exprFunx(context.Background(), nil)
-			assert.NoError(t, err)
-			assert.Equal(t, match, true)
-		})
-
+	for i := 0; i < b.N; i++ {
+		exprFunx, err := isMatch[any](target, pattern)
+		assert.NoError(b, err)
+		match, err := exprFunx(context.Background(), nil)
+		assert.NoError(b, err)
+		assert.Equal(b, match, true)
 	}
-
 }
 
-func Test_performance_different_pattern(t *testing.T) {
+func Benchmark_performance_different_pattern(b *testing.B) {
 	target := &ottl.StandardStringLikeGetter[any]{
 		Getter: func(ctx context.Context, tCtx any) (any, error) {
 			return "abcd", nil
 		},
 	}
 
-	for i := 0; i < 10000; i++ {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			pattern := &ottl.StandardStringLikeGetter[any]{
-				Getter: func(ctx context.Context, tCtx any) (any, error) {
-					return fmt.Sprint(i, "a*"), nil
-				},
-			}
-			exprFunx, err := isMatch[any](target, pattern)
-			assert.NoError(t, err)
-			match, err := exprFunx(context.Background(), nil)
-			assert.NoError(t, err)
-			assert.Equal(t, match, false)
-		})
-
+	for i := 0; i < b.N; i++ {
+		pattern := &ottl.StandardStringLikeGetter[any]{
+			Getter: func(ctx context.Context, tCtx any) (any, error) {
+				return fmt.Sprint(i, "a*"), nil
+			},
+		}
+		exprFunx, err := isMatch[any](target, pattern)
+		assert.NoError(b, err)
+		match, err := exprFunx(context.Background(), nil)
+		assert.NoError(b, err)
+		assert.Equal(b, match, false)
 	}
 }
