@@ -5,6 +5,8 @@ package ottlfuncs
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,6 +30,7 @@ func Test_isMatch(t *testing.T) {
 					return "hello world", nil
 				},
 			},
+
 			pattern: &ottl.StandardStringLikeGetter[any]{
 				Getter: func(ctx context.Context, tCtx any) (any, error) {
 					return "hello.*", nil
@@ -172,7 +175,9 @@ func Test_isMatch_validation(t *testing.T) {
 			return "\\K", nil
 		},
 	}
-	_, err := isMatch[any](target, pattern)
+	f, err := isMatch[any](target, pattern)
+	assert.NoError(t, err)
+	_, err = f(context.Background(), nil)
 	require.Error(t, err)
 }
 
@@ -191,4 +196,52 @@ func Test_isMatch_error(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = exprFunc(context.Background(), nil)
 	require.Error(t, err)
+}
+
+func Test_performance_same_pattern(t *testing.T) {
+	target := &ottl.StandardStringLikeGetter[any]{
+		Getter: func(ctx context.Context, tCtx any) (any, error) {
+			return "abcde", nil
+		},
+	}
+	pattern := &ottl.StandardStringLikeGetter[any]{
+		Getter: func(ctx context.Context, tCtx any) (any, error) {
+			return "a.*", nil
+		},
+	}
+	for i := 0; i < 10000; i++ {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			exprFunx, err := isMatch[any](target, pattern)
+			assert.NoError(t, err)
+			match, err := exprFunx(context.Background(), nil)
+			assert.NoError(t, err)
+			assert.Equal(t, match, true)
+		})
+
+	}
+
+}
+
+func Test_performance_different_pattern(t *testing.T) {
+	target := &ottl.StandardStringLikeGetter[any]{
+		Getter: func(ctx context.Context, tCtx any) (any, error) {
+			return "abcd", nil
+		},
+	}
+
+	for i := 0; i < 10000; i++ {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			pattern := &ottl.StandardStringLikeGetter[any]{
+				Getter: func(ctx context.Context, tCtx any) (any, error) {
+					return fmt.Sprint(i, "a*"), nil
+				},
+			}
+			exprFunx, err := isMatch[any](target, pattern)
+			assert.NoError(t, err)
+			match, err := exprFunx(context.Background(), nil)
+			assert.NoError(t, err)
+			assert.Equal(t, match, false)
+		})
+
+	}
 }
